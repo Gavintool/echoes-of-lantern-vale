@@ -10,7 +10,7 @@ Echoes of Lantern Vale is a first-person 3D story game inspired by the 奶龙 me
 
 ## Play
 
-[Open the game on Sites](https://echoes-of-lantern-vale.tool-not-me.chatgpt.site) using the Site owner’s ChatGPT account, or run the public source locally. A browser with WebGL 2 is required. Desktop Chrome is the tested browser.
+[Open the game on Sites](https://echoes-of-lantern-vale.tool-not-me.chatgpt.site) without signing in, or run the public source locally. A browser with WebGL 2 is required. Desktop Chrome is the tested browser.
 
 ```sh
 npm ci

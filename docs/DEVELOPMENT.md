@@ -28,6 +28,6 @@ Version 1 uses `localStorage` keys under `lantern-vale:v1:`. The three slot reco
 
 ## Publishing
 
-The public GitHub repository is the canonical source. Keep `.openai/hosting.json` tied to the existing Sites project and publish `dist/` built from the same verified commit. The Site is owner-private. The build requires no server runtime, account integration, or external write API.
+The public GitHub repository is the canonical source. Keep `.openai/hosting.json` tied to the existing Sites project and publish `dist/` built from the same verified commit. The Site is public. Anyone with the game link can play without signing in. The build requires no server runtime, account integration, or external write API.
 
 GitHub protects `main` with required code-owner review from `@Gavintool`, stale approval dismissal, and blocked forced updates and deletion. The owner retains administrative bypass for authorized changes. GitHub detects `.github/CODEOWNERS` on the base branch.

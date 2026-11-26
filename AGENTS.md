@@ -20,3 +20,4 @@ Every update must update this file and the documentation in the same commit or p
 ## Maintenance record
 
 - **1.0.0** added five chapters, three relationship routes, three endings, the tuning puzzle, three named save slots, desktop and touch controls, and static Sites hosting.
+- **2026-11-26** opened the live Sites deployment to the public. Players can start a journey without signing in.

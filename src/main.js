@@ -306,6 +306,7 @@ function beginJourney(data, slot, fresh = false) {
   mode = 'world';
   world.load(state, true);
   world.active = true;
+  world.dialogueActive = false;
   world.resize();
   renderHUDChapter();
   audio.setMode('world', state.act);
@@ -406,6 +407,7 @@ function startDialogue() {
   setInput(false);
   chapterCard.hidden = true;
   mode = 'dialogue';
+  world.dialogueActive = true;
   dialogue = { id: target.id, lines: [...sceneFor(target.id, state)], index: 0, draft: state, history: [], log: false };
   dialogueElement.hidden = false;
   audio.cue(target.optional ? 'windbell' : 'chime', 0, 0.36);
@@ -466,6 +468,7 @@ function advance(choseReply = false) {
   const changed = state.act !== before;
   dialogue = null;
   audio.stopVoice();
+  world.dialogueActive = false;
   dialogueElement.hidden = true;
   if (state.completed) {
     persist();

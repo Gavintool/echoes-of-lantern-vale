@@ -475,15 +475,15 @@ export function buildScenery(scene) {
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.set(x, 0.011, z);
     scene.add(shadow, group);
-    return group;
+    return { group, shadow };
   }
   const markers = targets.map(target => {
     const lead = target.actor ? actor(target.actor, target.x, target.z) : null;
-    if (target.companion) actor(target.companion, target.x + 1.25, target.z - 0.4);
+    const companion = target.companion ? actor(target.companion, target.x + 1.25, target.z - 0.4) : null;
     const marker = new T.Mesh(new T.OctahedronGeometry(target.optional ? 0.10 : 0.15), new T.MeshBasicMaterial({ color: target.optional ? 0x9be4c4 : 0xffd58c }));
     marker.position.set(target.x, lead ? 2.53 : target.optional ? 1.6 : 2.22, target.z);
     scene.add(marker);
-    return { target, marker, lead, baseY: marker.position.y };
+    return { target, marker, lead, companion, baseY: marker.position.y };
   });
 
   for (const [key, matrices] of batches) {
@@ -517,7 +517,7 @@ export function buildScenery(scene) {
   });
 
   return {
-    update(time, playerZ, act, available, motion, highQuality) {
+    update(time, playerZ, act, available, motion, highQuality, dialogueActive) {
       const animate = motion ? time : 0;
       const dawn = act === 4;
       sky.setHex(dawn ? 0xb8ab90 : act === 2 ? 0x759894 : 0x789e9a);
@@ -543,11 +543,15 @@ export function buildScenery(scene) {
         sign.rotation.y = Math.sin(animate * 0.52 + index) * 0.041;
         sign.rotation.z = Math.sin(animate * 0.76 + index) * 0.015;
       }
-      for (const { target, marker, lead, baseY } of markers) {
-        marker.visible = available.has(target.id);
+      for (const { target, marker, lead, companion, baseY } of markers) {
+        marker.visible = !dialogueActive && available.has(target.id);
         marker.position.y = baseY + Math.sin(animate * 2.2) * 0.13;
         marker.rotation.y = animate * 1.32;
-        if (lead) lead.position.y = Math.sin(animate * 2 + target.z) * 0.025;
+        if (lead) {
+          lead.group.visible = lead.shadow.visible = !dialogueActive;
+          lead.group.position.y = Math.sin(animate * 2 + target.z) * 0.025;
+        }
+        if (companion) companion.group.visible = companion.shadow.visible = !dialogueActive;
       }
       motes.forEach(([x, y, z, offset], i) => {
         xyz[i * 3] = x + Math.sin(animate * 0.22 + offset) * 1.6;

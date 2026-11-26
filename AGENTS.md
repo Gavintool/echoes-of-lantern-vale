@@ -23,3 +23,4 @@ Every update must update this file and the documentation in the same commit or p
 - **1.0.0** added five chapters, three relationship routes, three endings, the tuning puzzle, three named save slots, desktop and touch controls, and static Sites hosting.
 - **2026-11-26** opened the live Sites deployment to the public. Players can start a journey without signing in.
 - **1.1.0** localized the game and story into Simplified Chinese, added 79 Mandarin dialogue clips and a new stereo soundtrack, added four optional investigations, and dressed the supporting 奶龙 cast using the supplied reference photo.
+- **1.1.1** hid duplicate world actors and interaction diamonds during visual-novel dialogue.

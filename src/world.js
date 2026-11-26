@@ -27,6 +27,7 @@ export class World {
     this.dir = new T.Vector2();
     this.velocity = new T.Vector2();
     this.inputEnabled = false;
+    this.dialogueActive = false;
     this.active = false;
     this.onFrame = onFrame;
     this.onStep = onStep;
@@ -154,7 +155,7 @@ export class World {
     this.camera.position.set(this.position.x, playerHeight + bob, this.position.z);
     this.camera.rotation.set(this.view.y, this.view.x, 0);
     this.camera.updateMatrixWorld();
-    this.scenery.update(now, this.position.z, this.state.act, this.activeIds, this.settings.motion, this.settings.quality === 'high');
+    this.scenery.update(now, this.position.z, this.state.act, this.activeIds, this.settings.motion, this.settings.quality === 'high', this.dialogueActive);
     this.renderer.render(this.scene, this.camera);
     if (this.inputEnabled) {
       const target = this.nearest();

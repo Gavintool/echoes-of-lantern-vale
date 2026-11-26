@@ -1,10 +1,3 @@
-import '@fontsource/cinzel/latin-500.css';
-import '@fontsource/cinzel/latin-600.css';
-import '@fontsource/cinzel/latin-700.css';
-import '@fontsource/manrope/latin-400.css';
-import '@fontsource/manrope/latin-500.css';
-import '@fontsource/manrope/latin-600.css';
-import '@fontsource/manrope/latin-700.css';
 import './style.css';
 import { World } from './world.js';
 import { Soundscape } from './audio.js';
@@ -15,7 +8,8 @@ import { applyChoice, cast, chapters, discoveries, finishScene, outcomes, sceneF
 
 const app = document.querySelector('#app');
 const $ = selector => app.querySelector(selector);
-const numbers = ['I', 'II', 'III', 'IV', 'V'];
+const numbers = ['一', '二', '三', '四', '五'];
+const chapterLabel = act => '第' + numbers[act] + '章';
 const blockedKeyCodes = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown']);
 const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const slotNumber = value => String(value).padStart(2, '0');
@@ -25,7 +19,7 @@ const particles = Array.from({ length: 26 }, (_, i) => {
 }).join('');
 
 let settings = readSettings();
-let audio = new Soundscape(settings.volume);
+let audio = new Soundscape(settings);
 let world;
 let state;
 let activeSlot;
@@ -40,6 +34,8 @@ let closest;
 let chosenSlot;
 let elapsedCheckpoint = 0;
 let cursorPointer = null;
+let mixUpdate = 0;
+let unmutedVolume = settings.volume || defaultSettings.volume;
 let menuPreference = 'load';
 
 app.innerHTML = `
@@ -50,35 +46,34 @@ app.innerHTML = `
   <figure class="hero-dragon" aria-hidden="true"><img src="${art('milk-dragon.webp')}" alt=""></figure>
   <div class="menu-layout">
     <header class="menu-header">
-      <div class="studio-brand"><span class="brand-icon">${icon.flame}</span><span>LANTERN VALE<span class="brand-sub">灯谷故事</span></span></div>
-      <div class="top-tools"><button type="button" class="top-btn" data-action="help" aria-label="Controls" title="Controls">${icon.keyboard}</button><button type="button" class="top-btn" data-action="sound" aria-label="Toggle audio" title="Toggle audio" id="sound-toggle">${icon.sound}</button></div>
+      <div class="studio-brand"><span class="brand-icon">${icon.flame}</span><span>灯谷故事</span></div>
+      <div class="top-tools"><button type="button" class="top-btn" data-action="help" aria-label="操作指南" title="操作指南">${icon.keyboard}</button><button type="button" class="top-btn" data-action="sound" aria-label="开关声音" title="开关声音" id="sound-toggle">${icon.sound}</button></div>
     </header>
     <section class="menu-content" aria-labelledby="game-title">
-      <p class="eyebrow title-eyebrow"><span></span> A 奶龙 FAN GAME</p>
-      <h1 id="game-title"><span>Echoes of</span><span>Lantern Vale</span></h1>
-      <div class="title-han" lang="zh-Hans">灯谷回声</div>
-      <p class="menu-description">A valley has lost its voice. All that’s left is one very loud laugh.</p>
-      <nav class="menu-actions" aria-label="Main menu" id="menu-actions"></nav>
+      <p class="eyebrow title-eyebrow"><span></span> 奶龙同人游戏</p>
+      <h1 id="game-title">灯谷<span>回声</span></h1>
+      <p class="menu-description">整座灯谷突然失了声，只剩一声响亮的笑。</p>
+      <nav class="menu-actions" aria-label="主菜单" id="menu-actions"></nav>
     </section>
     <footer class="menu-footer">
-      <span class="audio-note">${icon.headphones} Headphones recommended</span>
-      <span class="build-note">FIRST-PERSON STORY ADVENTURE <span>·</span> V1.0</span>
+      <span class="audio-note">${icon.headphones} 建议佩戴耳机</span>
+      <span class="build-note">第一人称剧情冒险 <span>·</span> 1.1</span>
     </footer>
   </div>
 </div>
-<section id="play-screen" class="play-screen" hidden aria-label="3D exploration">
-  <canvas id="world" aria-label="First-person view of Lantern Vale" tabindex="-1"></canvas>
+<section id="play-screen" class="play-screen" hidden aria-label="三维探索">
+  <canvas id="world" aria-label="灯谷第一人称视角" tabindex="-1"></canvas>
   <div class="world-vignette"></div>
   <div class="hud" id="hud" hidden>
     <div class="quest"><span class="quest-icon">${icon.compass}</span><div><p class="eyebrow" id="hud-chapter"></p><h2 id="hud-objective"></h2></div></div>
-    <div class="hud-tools"><button class="top-btn" data-action="journal" aria-label="Journal" title="Journal (J)">${icon.book}</button><button class="top-btn" data-action="pause" aria-label="Pause" title="Pause (Esc)">${icon.pause}</button></div>
+    <div class="hud-tools"><button class="top-btn" data-action="journal" aria-label="手记" title="手记（J）">${icon.book}</button><button class="top-btn" data-action="pause" aria-label="暂停" title="暂停（Esc）">${icon.pause}</button></div>
     <span class="reticle" aria-hidden="true"></span>
     <div id="beacon" class="beacon" hidden><span aria-hidden="true"></span><strong></strong><small></small></div>
     <button id="interact" data-action="interact" class="interaction" type="button" hidden><kbd>E</kbd><span></span></button>
-    <div class="walk-tip" id="walk-tip"><kbd>W A S D</kbd> Move <span>·</span> <kbd>DRAG</kbd> Look <span>·</span> <kbd>E</kbd> Interact</div>
-    <div id="touch-stick" class="touch-stick" aria-label="Touch movement"><span></span></div>
+    <div class="walk-tip" id="walk-tip"><kbd>W A S D</kbd> 移动 <span>·</span> 拖动视角 <span>·</span> <kbd>E</kbd> 互动</div>
+    <div id="touch-stick" class="touch-stick" aria-label="触屏移动"><span></span></div>
   </div>
-  <section id="dialogue" class="dialogue" aria-label="Dialogue" hidden></section>
+  <section id="dialogue" class="dialogue" aria-label="剧情对白" hidden></section>
   <div id="chapter-card" class="chapter-card" aria-hidden="true" hidden></div>
 </section>
 <div id="overlay" class="overlay" hidden>
@@ -106,12 +101,12 @@ function renderMenu() {
   const latest = lastSave();
   $('#menu-actions').innerHTML = [
     latest
-      ? menuButton('continue', 'play', 'Continue', escapeHtml(latest.data.name) + ' · ' + (latest.data.completed ? 'Ending complete' : 'Chapter ' + numbers[latest.data.act]), true)
-      : menuButton('new', 'play', 'Begin Journey', 'Start a new story', true),
-    latest ? menuButton('new', 'sparkles', 'New Journey', 'Create a new save') : '',
-    menuButton('load', 'folder', 'Load Journey', latest ? 'Open a saved story' : 'Browse save slots'),
-    menuButton('settings', 'settings', 'Settings', 'Audio, visuals & controls'),
-    menuButton('credits', 'info', 'Credits', 'The people and art behind the Vale'),
+      ? menuButton('continue', 'play', '继续游戏', escapeHtml(latest.data.name) + ' · ' + (latest.data.completed ? '已通关' : chapterLabel(latest.data.act)), true)
+      : menuButton('new', 'play', '开始旅程', '从归渡桥开始', true),
+    latest ? menuButton('new', 'sparkles', '新旅程', '创建新存档') : '',
+    menuButton('load', 'folder', '读取存档', latest ? '继续以前的故事' : '查看存档位置'),
+    menuButton('settings', 'settings', '设置', '声音、画面与操作'),
+    menuButton('credits', 'info', '制作与鸣谢', '作者、素材与技术'),
   ].join('');
   renderSettingsEffects();
 }
@@ -126,7 +121,7 @@ function renderSettingsEffects() {
   const soundButton = $('#sound-toggle');
   soundButton.innerHTML = settings.volume ? icon.sound : icon.mute;
   soundButton.setAttribute('aria-pressed', String(!settings.volume));
-  audio.setVolume(settings.volume);
+  audio.setSettings(settings);
   world?.applySettings(settings);
 }
 
@@ -161,7 +156,7 @@ function slotButtons() {
     const chapter = data ? chapters[data.act] : null;
     return `<button type="button" class="slot-item" data-action="slot" data-slot="${slot}">
       <span class="slot-number">${slotNumber(slot)}</span>
-      <span class="slot-text"><strong>${data ? escapeHtml(data.name) : 'Empty slot'}</strong><small>${data ? (data.completed ? 'Ending complete · ' : 'Chapter ' + numbers[data.act] + ' · ') + chapter.location : 'Create a journey here'}</small></span>
+      <span class="slot-text"><strong>${data ? escapeHtml(data.name) : '空存档'}</strong><small>${data ? (data.completed ? '已通关 · ' : chapterLabel(data.act) + ' · ') + chapter.location : '在这里新建旅程'}</small></span>
       <span class="slot-tail">${data ? icon.clock + timeLabel(data.seconds) : icon.plus}</span>
     </button>`;
   }).join('');
@@ -171,7 +166,7 @@ function panelMarkup(label, title, body, wider = false) {
   panelContent.classList.toggle('wide', wider);
   panelContent.classList.remove('ending-panel');
   panelContent.innerHTML = `<div class="panel-top"><div><p class="eyebrow">${label}</p><h2 id="panel-title">${title}</h2></div>
-    <button class="top-btn modal-close" data-action="close" aria-label="Close">${icon.close}</button></div>${body}`;
+    <button class="top-btn modal-close" data-action="close" aria-label="关闭">${icon.close}</button></div>${body}`;
 }
 
 function viewPanel(name, parent = null) {
@@ -183,69 +178,79 @@ function viewPanel(name, parent = null) {
   $('#menu').inert = true;
   $('#play-screen').inert = true;
   setInput(false);
+  audio.stopVoice();
 
   if (name === 'slots') {
-    panelMarkup('YOUR PROGRESS', menuPreference === 'new' ? 'New journey' : 'Load journey', '<div class="slot-list">' + slotButtons() + '</div>');
+    panelMarkup('旅程进度', menuPreference === 'new' ? '新旅程' : '读取存档', '<div class="slot-list">' + slotButtons() + '</div>');
   } else if (name === 'create') {
     const existing = readSlot(chosenSlot);
-    panelMarkup('SAVE SLOT ' + slotNumber(chosenSlot), existing ? 'Replace journey' : 'Name your journey', `
-      ${existing ? '<p class="panel-description">This will replace <strong>' + escapeHtml(existing.name) + '</strong> and all progress in this slot.</p>' : '<p class="panel-description">Your progress saves here as you explore.</p>'}
-      <form id="create-form" class="create-form"><label for="save-name">Journey name</label><input id="save-name" name="name" maxlength="28" placeholder="The Courier" autocomplete="off">
-      <div class="panel-bottom"><button type="button" class="secondary-btn" data-action="show-slots">Back</button><button type="submit" class="gold-btn">${existing ? 'Replace & begin' : 'Begin journey'} ${icon.chevron}</button></div></form>`);
+    panelMarkup('存档位 ' + slotNumber(chosenSlot), existing ? '覆盖旅程' : '为旅程命名', `
+      ${existing ? '<p class="panel-description">此操作将覆盖 <strong>' + escapeHtml(existing.name) + '</strong> 的存档和进度。</p>' : '<p class="panel-description">探索期间，进度会自动保存到这里。</p>'}
+      <form id="create-form" class="create-form"><label for="save-name">旅程名称</label><input id="save-name" name="name" maxlength="28" placeholder="信使奶龙" autocomplete="off">
+      <div class="panel-bottom"><button type="button" class="secondary-btn" data-action="show-slots">返回</button><button type="submit" class="gold-btn">${existing ? '覆盖并开始' : '开始旅程'} ${icon.chevron}</button></div></form>`);
   } else if (name === 'settings') {
-    panelMarkup('PREFERENCES', 'Settings', `<div class="settings-list">
-      <label class="settings-row" for="volume"><span>Master volume<small>Music and sound effects</small></span><span class="range-control"><input type="range" id="volume" data-setting="volume" min="0" max="100" value="${Math.round(settings.volume * 100)}"><output>${Math.round(settings.volume * 100)}%</output></span></label>
-      <label class="settings-row" for="sensitivity"><span>Look sensitivity<small>Mouse, drag, and keyboard turning</small></span><span class="range-control"><input type="range" id="sensitivity" data-setting="sensitivity" min="25" max="200" value="${Math.round(settings.sensitivity * 100)}"><output>${Math.round(settings.sensitivity * 100)}%</output></span></label>
-      <label class="settings-row" for="textSpeed"><span>Dialogue speed</span><select id="textSpeed" data-setting="textSpeed">${['instant', 'steady', 'slow'].map(speed => option(speed, speed[0].toUpperCase() + speed.slice(1), settings.textSpeed)).join('')}</select></label>
-      <label class="settings-row" for="quality"><span>3D quality</span><select id="quality" data-setting="quality">${option('high', 'High', settings.quality)}${option('low', 'Performance', settings.quality)}</select></label>
-      <label class="settings-row" for="motion"><span>Ambient motion<small>Camera bob, drifting embers, and transitions</small></span><input id="motion" type="checkbox" data-setting="motion" ${settings.motion ? 'checked' : ''}></label>
-      </div><div class="panel-bottom"><button class="text-btn" data-action="reset-settings">Restore defaults</button><button class="gold-btn" data-action="close">Done ${icon.check}</button></div>`);
+    panelMarkup('游戏选项', '设置', `<div class="settings-list">
+      ${volumeSlider('volume', '总音量')}
+      ${volumeSlider('voiceVolume', '角色配音', '普通话对白与旁白')}
+      ${volumeSlider('musicVolume', '背景音乐')}
+      ${volumeSlider('effectsVolume', '环境与音效', '河水、风铃、脚步和剧情音效')}
+      <label class="settings-row" for="sensitivity"><span>视角灵敏度<small>鼠标、触屏和键盘转向</small></span><span class="range-control"><input type="range" id="sensitivity" data-setting="sensitivity" min="25" max="200" value="${Math.round(settings.sensitivity * 100)}"><output>${Math.round(settings.sensitivity * 100)}%</output></span></label>
+      <label class="settings-row" for="textSpeed"><span>字幕速度</span><select id="textSpeed" data-setting="textSpeed">${Object.entries({ instant: '立即显示', steady: '适中', slow: '慢速' }).map(([speed, title]) => option(speed, title, settings.textSpeed)).join('')}</select></label>
+      <label class="settings-row" for="quality"><span>三维画质</span><select id="quality" data-setting="quality">${option('high', '高画质', settings.quality)}${option('low', '流畅模式', settings.quality)}</select></label>
+      <label class="settings-row" for="motion"><span>环境动画<small>走路起伏、飘落的火星和转场</small></span><input id="motion" type="checkbox" data-setting="motion" ${settings.motion ? 'checked' : ''}></label>
+      </div><div class="panel-bottom"><button class="text-btn" data-action="reset-settings">恢复默认</button><button class="gold-btn" data-action="close">完成 ${icon.check}</button></div>`);
   } else if (name === 'help') {
-    panelMarkup('FIELD GUIDE', 'Controls', `<dl class="control-list">
-      <div><dt>Move</dt><dd><kbd>W A S D</kbd> / touch stick</dd></div>
-      <div><dt>Look</dt><dd>Drag / <kbd>← →</kbd> <kbd>PgUp PgDn</kbd></dd></div>
-      <div><dt>Capture mouse look</dt><dd><kbd>M</kbd></dd></div>
-      <div><dt>Move faster</dt><dd><kbd>SHIFT</kbd></dd></div>
-      <div><dt>Talk / inspect</dt><dd><kbd>E</kbd> / interaction button</dd></div>
-      <div><dt>Advance dialogue</dt><dd><kbd>SPACE</kbd> / <kbd>ENTER</kbd></dd></div>
-      <div><dt>Choose a reply</dt><dd><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dd></div>
-      <div><dt>Journal / pause</dt><dd><kbd>J</kbd> / <kbd>ESC</kbd></dd></div>
-      </dl><div class="panel-bottom"><button class="gold-btn" data-action="close">Done ${icon.check}</button></div>`);
+    panelMarkup('游玩指南', '操作指南', `<dl class="control-list">
+      <div><dt>移动</dt><dd><kbd>W A S D</kbd> / 触屏摇杆</dd></div>
+      <div><dt>转动视角</dt><dd>拖动 / <kbd>← →</kbd> <kbd>PgUp PgDn</kbd></dd></div>
+      <div><dt>锁定鼠标视角</dt><dd><kbd>M</kbd></dd></div>
+      <div><dt>加速移动</dt><dd><kbd>SHIFT</kbd></dd></div>
+      <div><dt>交谈或查看</dt><dd><kbd>E</kbd> / 互动按钮</dd></div>
+      <div><dt>推进对白</dt><dd><kbd>SPACE</kbd> / <kbd>ENTER</kbd></dd></div>
+      <div><dt>选择回答</dt><dd><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dd></div>
+      <div><dt>手记或暂停</dt><dd><kbd>J</kbd> / <kbd>ESC</kbd></dd></div>
+      </dl><div class="panel-bottom"><button class="gold-btn" data-action="close">完成 ${icon.check}</button></div>`);
   } else if (name === 'credits') {
-    panelMarkup('ECHOES OF LANTERN VALE', 'Credits', `<div class="credits"><p>An original story, environment, and score for an unofficial 奶龙 fan game.</p>
-      <p>Character artwork by <a href="https://www.meshy.ai/posts/%E5%A5%B6%E8%9B%99-01a19f9e-bf1b-77ff-b000-5f8fbf9835a7" target="_blank" rel="noreferrer">zeshentian1 · 奶蛙</a>. Original 奶龙 character IP by <a href="https://www.nailoong.com/" target="_blank" rel="noreferrer">Seventh Impression</a>.</p>
-      <p>Lantern Vale key art and supporting portraits made with ImageGen. Built with Three.js, Web Audio, and Lucide icons.</p>
-      <p><a href="https://github.com/Gavintool/echoes-of-lantern-vale" target="_blank" rel="noreferrer">View the GitHub repository</a></p></div>`);
+    panelMarkup('灯谷回声', '制作与鸣谢', `<div class="credits"><p>奶龙同人游戏。灯谷的剧情、场景及配乐为本作原创。</p>
+      <p>主角素材由 <a href="https://www.meshy.ai/posts/%E5%A5%B6%E8%9B%99-01a19f9e-bf1b-77ff-b000-5f8fbf9835a7" target="_blank" rel="noreferrer">zeshentian1</a> 提供。奶龙原作由 <a href="https://www.nailoong.com/" target="_blank" rel="noreferrer">第七印象</a> 创作。</p>
+      <p>其他奶龙立绘基于参考照片制作。普通话配音由 Kokoro 合成。详见 <a href="https://github.com/Gavintool/echoes-of-lantern-vale/blob/main/docs/ASSETS.md" target="_blank" rel="noreferrer">素材与音频来源</a>。</p>
+      <p><a href="https://github.com/Gavintool/echoes-of-lantern-vale" target="_blank" rel="noreferrer">查看 GitHub 项目</a></p></div>`);
   } else if (name === 'pause') {
-    panelMarkup('CHAPTER ' + numbers[state.act] + ' · ' + chapters[state.act].location, 'Journey paused', `<div class="pause-actions">
-      ${menuButton('close', 'play', 'Resume journey', 'Return to Lantern Vale', true)}
-      ${menuButton('save', 'save', 'Save now', escapeHtml(state.name) + ' · Slot ' + slotNumber(activeSlot))}
-      ${menuButton('journal', 'book', 'Journal', 'Read your discoveries')}
-      ${menuButton('settings', 'settings', 'Settings', 'Audio, visuals & controls')}
-      ${menuButton('help', 'keyboard', 'Controls', 'Keyboard and touch')}
-      ${menuButton('title', 'back', 'Main menu', 'Save and leave the Vale')}
+    panelMarkup(chapterLabel(state.act) + ' · ' + chapters[state.act].location, '旅程暂停', `<div class="pause-actions">
+      ${menuButton('close', 'play', '继续旅程', '回到灯谷', true)}
+      ${menuButton('save', 'save', '保存进度', escapeHtml(state.name) + ' · 存档位 ' + slotNumber(activeSlot))}
+      ${menuButton('journal', 'book', '手记', '查看沿途的发现')}
+      ${menuButton('settings', 'settings', '设置', '声音、画面与操作')}
+      ${menuButton('help', 'keyboard', '操作指南', '键盘与触屏操作')}
+      ${menuButton('title', 'back', '主菜单', '保存后返回标题')}
       </div>`);
   } else if (name === 'journal') {
     const current = chapters[state.act];
-    panelMarkup(current.location, 'Field journal', `<div class="journal-layout"><div class="map-list">${chapters.map((chapter, i) =>
-      `<div class="map-place ${i === state.act ? 'current' : ''}"><span>${i < state.act ? icon.check : numbers[i]}</span><div><small>CHAPTER ${numbers[i]}</small><strong>${chapter.location}</strong></div></div>`).join('')}</div>
-      <div class="journal-entries"><p class="eyebrow">CURRENT OBJECTIVE</p><p>${current.task}</p><p class="eyebrow">DISCOVERIES</p>
-      ${state.done.length ? state.done.map(id => `<article><strong>${discoveries[id][0]}</strong><p>${discoveries[id][1]}</p></article>`).join('') : '<p>Your notes will appear here as you explore.</p>'}
+    panelMarkup(current.location, '随身手记', `<div class="journal-layout"><div class="map-list">${chapters.map((chapter, i) =>
+      `<div class="map-place ${i === state.act ? 'current' : ''}"><span>${i < state.act ? icon.check : numbers[i]}</span><div><small>${chapterLabel(i)}</small><strong>${chapter.location}</strong></div></div>`).join('')}</div>
+      <div class="journal-entries"><p class="eyebrow">当前目标</p><p>${current.task}</p><p class="eyebrow">沿途发现</p>
+      ${state.done.length ? state.done.map(id => `<article><strong>${discoveries[id][0]}</strong><p>${discoveries[id][1]}</p></article>`).join('') : '<p>沿途的发现会记在这里。</p>'}
       </div></div>`, true);
   } else if (name === 'ending') {
     const outcome = outcomes[state.ending];
-    const route = { yun: 'Yun', ren: 'Ren', friends: 'Yun & Ren' }[state.route];
+    const route = { yun: cast.yun.name, ren: cast.ren.name, friends: '青音奶龙与灯穗奶龙' }[state.route];
     panelMarkup(outcome.subtitle, outcome.title, `<div class="ending-art" style="--landscape:url('${art('vale.webp')}')"><span>${icon.flame}</span></div>
       <p class="ending-caption">${outcome.caption}</p>
-      <div class="ending-meta"><span>${icon.flag} 5 chapters completed</span><span>${icon.heart} ${route}</span><span>${icon.clock} ${timeLabel(state.seconds)}</span></div>
-      <div class="panel-bottom"><button class="secondary-btn" data-action="title">Main menu</button><button class="gold-btn" data-action="new">New journey ${icon.chevron}</button></div>`);
+      <div class="ending-meta"><span>${icon.flag} 已完成五章</span><span>${icon.heart} ${route}</span><span>${icon.clock} ${timeLabel(state.seconds)}</span></div>
+      <div class="panel-bottom"><button class="secondary-btn" data-action="title">主菜单</button><button class="gold-btn" data-action="new">新旅程 ${icon.chevron}</button></div>`);
     panelContent.classList.add('ending-panel');
   } else if (name === 'unsupported') {
-    panelMarkup('LANTERN VALE', '3D could not start', '<p class="panel-description">The game needs WebGL 2 with hardware acceleration. Try opening the game in a current desktop browser.</p><div class="panel-bottom"><button class="gold-btn" data-action="title">Main menu</button></div>');
+    panelMarkup('灯谷回声', '无法启动三维画面', '<p class="panel-description">游戏需要支持 WebGL 2 和硬件加速的浏览器。请试试最新版桌面浏览器。</p><div class="panel-bottom"><button class="gold-btn" data-action="title">主菜单</button></div>');
   }
 
   const focus = $('#save-name') ?? (alreadyOpen && oldFocus ? panelContent.querySelector(`[data-action="${oldFocus}"]`) : null) ?? panelContent;
   focus.focus({ preventScroll: true });
+}
+
+function volumeSlider(key, label, detail = '') {
+  const percent = Math.round(settings[key] * 100);
+  return `<label class="settings-row" for="${key}"><span>${label}${detail ? '<small>' + detail + '</small>' : ''}</span>
+    <span class="range-control"><input type="range" id="${key}" data-setting="${key}" min="0" max="100" value="${percent}"><output>${percent}%</output></span></label>`;
 }
 
 function option(value, title, selected) {
@@ -273,7 +278,7 @@ function detectWorld() {
   if (!world) {
     try {
       world = new World(canvas, { settings, onFrame: updateHUD, onStep: () => audio.cue('step'),
-        onContextLost: () => { persist(); notify('The graphics context was lost.', 'info'); viewPanel('unsupported'); } });
+        onContextLost: () => { persist(); notify('图形连接中断，进度已尝试保存。', 'info'); viewPanel('unsupported'); } });
     } catch (error) {
       // A browser can still show the title and settings if WebGL is unavailable.
       console.warn('WebGL initialization failed', error);
@@ -303,17 +308,18 @@ function beginJourney(data, slot, fresh = false) {
   world.active = true;
   world.resize();
   renderHUDChapter();
-  audio.setMode('world');
+  audio.setMode('world', state.act);
   if (state.completed) {
     showEnding();
     return;
   }
   setInput(true);
   canvas.focus({ preventScroll: true });
+  audio.prime(sceneFor('arrival', state).slice(0, 2));
   if (fresh) {
     const saved = persist(false);
     showChapter();
-    notify(saved ? 'Journey created · Slot ' + slotNumber(slot) : 'Storage unavailable. Progress will only last this session.', saved ? 'save' : 'info');
+    notify(saved ? '旅程已创建 · 存档位 ' + slotNumber(slot) : '无法使用浏览器存储，进度仅在本次游玩有效。', saved ? 'save' : 'info');
   }
 }
 
@@ -322,7 +328,7 @@ function persist(report = false) {
   if (world && (mode === 'world' || mode === 'dialogue')) state = { ...state, ...world.transform() };
   elapsedCheckpoint = state.seconds;
   const saved = saveSlot(activeSlot, state);
-  if (report) notify(saved ? 'Journey saved · Slot ' + slotNumber(activeSlot) : 'The browser could not save this journey.', saved ? 'save' : 'info');
+  if (report) notify(saved ? '旅程已保存 · 存档位 ' + slotNumber(activeSlot) : '浏览器未能保存当前旅程。', saved ? 'save' : 'info');
   return saved;
 }
 
@@ -346,6 +352,7 @@ function returnToTitle() {
   $('#menu').inert = false;
   mode = 'menu';
   panel = null;
+  audio.stopVoice();
   audio.setMode('menu');
   renderMenu();
   $('#menu-actions button')?.focus({ preventScroll: true });
@@ -353,7 +360,7 @@ function returnToTitle() {
 
 function renderHUDChapter() {
   const chapter = chapters[state.act];
-  $('#hud-chapter').textContent = 'CHAPTER ' + numbers[state.act] + ' / ' + chapter.location;
+  $('#hud-chapter').textContent = chapterLabel(state.act) + ' / ' + chapter.location;
   $('#hud-objective').textContent = chapter.task;
   $('#walk-tip').hidden = state.act !== 0;
   closest = null;
@@ -363,24 +370,30 @@ function renderHUDChapter() {
 
 function updateHUD(dt, target, projection) {
   state.seconds += dt;
+  mixUpdate += dt;
+  if (mixUpdate > 0.14) {
+    mixUpdate = 0;
+    audio.updatePosition(world.position.x, world.position.z, world.view.x);
+  }
   if (state.seconds - elapsedCheckpoint > 15) persist();
   if (target?.id !== closest?.id) {
     beacon.querySelector('strong').textContent = target?.title ?? '';
-    interact.lastElementChild.textContent = target ? target.type + ' ' + target.title : '';
+    beacon.classList.toggle('optional-beacon', Boolean(target?.optional));
+    interact.lastElementChild.textContent = target ? (target.type.includes('%s') ? target.type.replace('%s', target.title) : target.type + target.title) : '';
   }
   closest = target;
   beacon.hidden = !projection || target.distance < 2.5;
   if (projection && target.distance >= 2.5) {
     beacon.style.left = projection[0] * 100 + '%';
     beacon.style.top = projection[1] * 100 + '%';
-    beacon.querySelector('small').textContent = Math.ceil(target.distance) + ' m';
+    beacon.querySelector('small').textContent = Math.ceil(target.distance) + ' 米';
   }
   interact.hidden = !target || target.distance >= 2.55;
 }
 
 function showChapter() {
   const chapter = chapters[state.act];
-  chapterCard.innerHTML = '<p class="eyebrow">CHAPTER ' + numbers[state.act] + '</p><h2>' + chapter.title + '</h2><span>' + chapter.location + '</span>';
+  chapterCard.innerHTML = '<p class="eyebrow">' + chapterLabel(state.act) + '</p><h2>' + chapter.title + '</h2><span>' + chapter.location + '</span>';
   chapterCard.hidden = false;
   clearTimeout(transitionTicker);
   transitionTicker = setTimeout(() => { chapterCard.hidden = true; }, settings.motion ? 3150 : 1600);
@@ -395,28 +408,31 @@ function startDialogue() {
   mode = 'dialogue';
   dialogue = { id: target.id, lines: [...sceneFor(target.id, state)], index: 0, draft: state, history: [], log: false };
   dialogueElement.hidden = false;
-  if (target.actor === 'bao') audio.cue('laugh');
-  else audio.cue('chime');
+  audio.cue(target.optional ? 'windbell' : 'chime', 0, 0.36);
   renderLine();
 }
 
 function renderLine() {
   const item = dialogue.lines[dialogue.index];
   const speaker = cast[item.speaker];
-  dialogue.history.push([speaker.name, item.text]);
   const portrait = speaker.portrait && art(speaker.portrait + '.webp');
-  const speakerName = item.speaker === 'courier' && state.name !== 'The Courier' ? state.name : speaker.name;
+  const speakerName = item.speaker === 'courier' && state.name !== '信使奶龙' ? state.name + ' · 信使奶龙' : speaker.name;
+  dialogue.history.push([speakerName, item.text]);
   dialogueElement.innerHTML = `
-    ${portrait ? `<div class="portrait-stage ${speaker.portrait === 'milk-dragon' ? 'mascot-portrait' : ''}"><img src="${portrait}" alt="${speaker.name}"></div>` : ''}
+    ${portrait ? `<div class="portrait-stage ${item.speaker === 'echo' ? 'echo-portrait' : ''}"><img src="${portrait}" alt="${speaker.name}"></div>` : ''}
     <div class="dialogue-box">
-      <header><div class="speaker"><strong>${escapeHtml(speakerName)}</strong><span lang="zh-Hans">${speaker.han}</span></div><button type="button" class="text-btn log-toggle" data-action="log">${icon.book} History</button></header>
+      <header><div class="speaker"><strong>${escapeHtml(speakerName)}</strong></div><div class="dialogue-tools"><button type="button" class="text-btn replay-btn" data-action="replay" title="重听当前台词">${icon.sound} 重听</button><button type="button" class="text-btn log-toggle" data-action="log">${icon.book} 回顾</button></div></header>
       <div class="dialogue-text" id="line-text"></div>
       <div id="replies" class="replies" hidden>${item.choices?.map((reply, i) => `<button data-action="choose" data-choice="${i}" type="button"><kbd>${i + 1}</kbd> ${escapeHtml(reply.text)}</button>`).join('') ?? ''}</div>
-      <div class="dialogue-footer"><span>${escapeHtml(speaker.role)}</span><button id="dialogue-next" class="text-btn" data-action="advance" type="button">Continue ${icon.chevron}</button></div>
+      <div class="dialogue-footer"><span>${escapeHtml(speaker.role)}</span><button id="dialogue-next" class="text-btn" data-action="advance" type="button">继续 ${icon.chevron}</button></div>
       <div id="history" class="history" hidden></div>
     </div>`;
   const text = $('#line-text');
   text.setAttribute('aria-label', item.text);
+  if (item.cue) audio.cue(item.cue, 0, item.cue.includes('laugh') ? 0.64 : 0.53);
+  replayVoice();
+  audio.prime([dialogue.lines[dialogue.index + 1], dialogue.lines[dialogue.index + 2],
+    ...(item.choices ?? []).map(reply => reply.replies[0])]);
   let index = 0;
   const reveal = () => {
     clearTimeout(textTicker);
@@ -449,6 +465,7 @@ function advance(choseReply = false) {
   state = finishScene({ ...dialogue.draft, seconds: state.seconds }, dialogue.id);
   const changed = state.act !== before;
   dialogue = null;
+  audio.stopVoice();
   dialogueElement.hidden = true;
   if (state.completed) {
     persist();
@@ -457,6 +474,7 @@ function advance(choseReply = false) {
   }
   mode = 'world';
   world.load(state, changed);
+  audio.setMode('world', state.act);
   persist();
   renderHUDChapter();
   setInput(true);
@@ -470,7 +488,6 @@ function choose(index) {
   if (!reply) return;
   dialogue.draft = applyChoice(dialogue.draft, reply);
   dialogue.lines.splice(dialogue.index + 1, 0, ...reply.replies);
-  if (dialogue.id === 'broadcast') audio.cue('laugh');
   advance(true);
 }
 
@@ -478,8 +495,15 @@ function showEnding() {
   mode = 'ending';
   dialogueElement.hidden = true;
   overlay.classList.add('ending-backdrop');
-  audio.cue('chime');
+  audio.setMode('ending', state.act);
+  audio.cue('dawn');
   viewPanel('ending');
+}
+
+function replayVoice() {
+  if (!dialogue || panel || dialogue.log) return;
+  const button = $('.replay-btn');
+  audio.speak(dialogue.lines[dialogue.index], playing => button?.classList.toggle('is-speaking', playing));
 }
 
 function toggleHistory() {
@@ -488,16 +512,20 @@ function toggleHistory() {
   const history = $('#history');
   history.hidden = !dialogue.log;
   if (dialogue.log) {
+    audio.stopVoice();
     history.innerHTML = dialogue.history.map(([name, text]) => '<p><strong>' + escapeHtml(name) + '</strong> ' + escapeHtml(text) + '</p>').join('');
     history.scrollTop = history.scrollHeight;
   }
 }
 
 function toggleSound() {
-  settings = { ...settings, volume: settings.volume > 0 ? 0 : defaultSettings.volume };
+  if (settings.volume > 0) {
+    unmutedVolume = settings.volume;
+    settings = { ...settings, volume: 0 };
+  } else settings = { ...settings, volume: unmutedVolume };
   saveSettings(settings);
   renderSettingsEffects();
-  notify(settings.volume ? 'Audio on' : 'Audio muted', settings.volume ? 'sound' : 'mute');
+  notify(settings.volume ? '声音已开启' : '已静音', settings.volume ? 'sound' : 'mute');
 }
 
 function takeAction(action, button) {
@@ -542,6 +570,7 @@ function takeAction(action, button) {
     case 'advance': advance(); break;
     case 'choose': choose(Number(button.dataset.choice)); break;
     case 'log': toggleHistory(); break;
+    case 'replay': replayVoice(); break;
   }
 }
 
@@ -607,9 +636,9 @@ document.addEventListener('keydown', event => {
   if (event.code === 'KeyM') {
     try {
       const lock = canvas.requestPointerLock?.();
-      lock?.catch(() => notify('Drag the view to look around.', 'mouse'));
+      lock?.catch(() => notify('可以拖动画面转动视角。', 'mouse'));
     } catch {
-      notify('Drag the view to look around.', 'mouse');
+      notify('可以拖动画面转动视角。', 'mouse');
     }
   }
 });

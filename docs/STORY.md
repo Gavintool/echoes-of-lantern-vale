@@ -1,29 +1,29 @@
-# Story guide
+# 剧情指南
 
-This guide contains full spoilers.
+本页包含完整剧透。
 
-## Premise
+## 灯谷为何失声
 
-Years after a flood, acoustic engineer Yun built a machine to preserve the sounds of the people the Vale lost. The machine tries to match live voices to its recordings. At high gain, it replaces the living sound with its best match. When Ren raises the gain to hear her brother, whole stretches of the village go quiet. 奶龙 arrived after the flood, so the archive has no matching sound for his laugh. The courier brings home a governor their mother designed to keep the machine’s two signals apart.
+洪水之后，青音奶龙造了一台留住旧声音的发声塔。它会给传来的声音寻找最接近的录音。增益太高时，旧录音会盖掉当下的声音。灯穗奶龙想再听哥哥说一次「晚饭回来吃」，把增益推高了。新来灯谷的奶龙没有旧录音，他的笑声成了唯一可以传进塔的活声。回乡的信使带来了母亲留下的分音器。
 
-## Chapter progression
-
-| Chapter | Location | What changes |
+| 章节 | 地点 | 主线推进 |
 | --- | --- | --- |
-| The sound that stayed | Arrival bridge | 奶龙 explains the silence and sends the courier to the market. |
-| Things we keep | Lantern market | Yun identifies the governor. Ren opens the grove, where her brother’s recordings are kept. The two conversations can happen in either order. |
-| An unfinished song | Ginkgo grove | A recording of the courier’s mother teaches the three-beat sequence for opening a clean channel. The journal records the sequence and the game allows retries. |
-| What the valley owes | The listening house | Ren admits what she did. The courier chooses who to spend dawn with. Then 奶龙’s laugh lets the courier separate the archive from the live signal. |
-| The morning after | Dawn pavilion | The transmitter decision changes how the town handles the recordings. The selected companion and earlier bond choices change the closing conversation. |
+| 还有一声笑 | 归渡桥 | 奶龙说明失声的情况。查看渡船簿可知道母亲等的是哪一班船。 |
+| 留在灯里的人 | 灯市 | 青音奶龙认出分音器。灯穗奶龙交出银杏林的钥匙。两场对白顺序不限。 |
+| 没奏完的曲子 | 银杏林 | 霜铃奶龙的录音给出解决灯风琴的线索。顺序记在手记上。 |
+| 回声的归处 | 听声楼 | 灯穗奶龙坦白，信使决定天亮后与谁相伴。奶龙的笑分开两个声道。 |
+| 渡船还早 | 晓灯亭 | 灯谷对档案的处理决定结局。市场对白里的态度和同行选择影响最后一段。 |
 
-## Relationships
+## 奶龙们
 
-Yun held on to the past through technology. She needs someone to see her as a person who can make a new choice. Ren made a mistake out of grief and wants agency over how and when she hears the past. Both are adults. Expressing warmth in their market conversations changes their personal epilogues. The player can also choose a friendship scene with both of them. Their relationship choice is independent of the fate of the archive.
+- **奶龙**留着原来的样子。他紧张时会笑，最后拿这声笑帮整座村子重新开口。
+- **青音奶龙**戴铜护目镜和音叉，穿青色工装。她曾试图用机器守住过去。回应她的邀请，可以走一条相互靠近的路线。
+- **灯穗奶龙**戴红围巾，腰间挂纸灯。她希望由说话的人决定自己的声音何时被听见。对她表达关心会改变最后扎纸灯时的对白。
+- **霜铃奶龙**戴细框眼镜和浅紫披肩。她是信使的母亲，出现在蜡筒的回忆里。
+- **信使奶龙**戴斗笠，背帆布信包。玩家在主线里可以选择青音奶龙、灯穗奶龙，或和两人一起度过早晨。
 
-奶龙 is a companion whose nervous laugh becomes the only signal the tower can reliably identify as live. His response to the very first dialogue choice returns in the closing scene.
+## 塔上的三个决定
 
-## Endings
-
-- **The living chorus** gives residents separate live and archive channels, with community controls and the ability to withdraw recordings.
-- **The museum of dawn** restores live sound and lets the town keep an archive that plays privately when someone opens it.
-- **The quiet between** restores live sound by disconnecting the archive. The final scene follows what Ren does with the silent cylinders.
+- **灯谷合唱**把活声和档案分开，把开关交给灯谷。留下录音的人也能选择擦掉录音。
+- **黎明档案馆**关闭公共播放，把录音留在可以主动打开的房间里。
+- **两声之间**断开档案。空蜡筒后来变成了河边的花盆。

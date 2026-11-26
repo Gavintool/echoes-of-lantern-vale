@@ -16,20 +16,20 @@ function completeScene(state, id, replyIndex = 0) {
 
 test('chapter progression is safe in either market order and a wrong organ answer can be retried', () => {
   let state = newJourney('Courier');
-  assert.deepEqual(availableTargets(state).map(item => item.id), ['arrival']);
+  assert.deepEqual(availableTargets(state).map(item => item.id), ['manifest', 'arrival']);
   state = completeScene(state, 'arrival');
   state = completeScene(state, 'ren');
   assert.equal(state.act, 1);
   state = completeScene(state, 'yun');
   assert.equal(state.act, 2);
-  assert.deepEqual(availableTargets(state).map(item => item.id), ['cylinder']);
+  assert.deepEqual(availableTargets(state).map(item => item.id), ['cylinder', 'floodmark']);
   state = completeScene(state, 'cylinder');
   const wrongAnswer = completeScene(state, 'organ', 1);
   assert.deepEqual(wrongAnswer, state);
   state = completeScene(wrongAnswer, 'organ', 0);
   assert.equal(state.act, 3);
   assert.deepEqual(state.position, chapters[3].spawn);
-  assert.deepEqual(availableTargets(state).map(item => item.id), ['confession']);
+  assert.deepEqual(availableTargets(state).map(item => item.id), ['confession', 'logbook']);
 });
 
 for (const [routeIndex, route] of ['yun', 'ren', 'friends'].entries()) {
@@ -45,8 +45,17 @@ for (const [routeIndex, route] of ['yun', 'ren', 'friends'].entries()) {
       assert.equal(state.completed, false);
       state = completeScene(state, 'farewell');
       assert.equal(state.completed, true);
-      assert.equal(state.done.length, targets.length);
+      assert.equal(state.done.length, targets.filter(target => !target.optional).length);
       assert.deepEqual(availableTargets(state), []);
     });
   }
 }
+
+test('optional discoveries persist and never advance a chapter on their own', () => {
+  let state = completeScene(newJourney('信使奶龙'), 'manifest');
+  assert.deepEqual(state.done, ['manifest']);
+  assert.equal(state.act, 0);
+  state = completeScene(state, 'arrival');
+  assert.equal(state.act, 1);
+  assert.deepEqual(state.done, ['manifest', 'arrival']);
+});

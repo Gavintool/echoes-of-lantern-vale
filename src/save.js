@@ -2,7 +2,10 @@ import { chapters, outcomes, targets } from './story.js';
 
 export const SLOT_COUNT = 3;
 const prefix = 'lantern-vale:v1:';
-export const defaultSettings = { volume: 0.42, sensitivity: 1, textSpeed: 'steady', motion: true, quality: 'high' };
+export const defaultSettings = {
+  volume: 0.72, voiceVolume: 0.96, musicVolume: 0.68, effectsVolume: 0.74,
+  sensitivity: 1, textSpeed: 'steady', motion: true, quality: 'high',
+};
 const routes = ['yun', 'ren', 'friends'];
 const storage = () => globalThis.localStorage;
 
@@ -29,7 +32,7 @@ const ids = new Set(targets.map(item => item.id));
 export function newJourney(name) {
   return {
     version: 1,
-    name: name.trim().slice(0, 28) || 'The Courier',
+    name: name.trim().slice(0, 28) || '信使奶龙',
     act: 0,
     done: [],
     position: [...chapters[0].spawn],
@@ -53,18 +56,25 @@ export function readSlot(slot) {
     (data.route !== null && !routes.includes(data.route)) ||
     (data.ending !== null && !Object.hasOwn(outcomes, data.ending)) ||
     (data.act === 4 && !data.ending)) return null;
-  return data;
+  return data.name === 'The Courier' ? { ...data, name: '信使奶龙' } : data;
 }
 
 export function saveSlot(slot, data) {
   return write('slot-' + slot, { ...data, savedAt: Date.now() });
 }
 
+function volumeSetting(item, key) {
+  return Number.isFinite(item[key]) ? Math.max(0, Math.min(1, item[key])) : defaultSettings[key];
+}
+
 export function readSettings() {
   const item = read('settings');
   if (!item) return { ...defaultSettings };
   return {
-    volume: Number.isFinite(item.volume) ? Math.max(0, Math.min(1, item.volume)) : defaultSettings.volume,
+    volume: volumeSetting(item, 'volume'),
+    voiceVolume: volumeSetting(item, 'voiceVolume'),
+    musicVolume: volumeSetting(item, 'musicVolume'),
+    effectsVolume: volumeSetting(item, 'effectsVolume'),
     sensitivity: Number.isFinite(item.sensitivity) ? Math.max(0.25, Math.min(2, item.sensitivity)) : defaultSettings.sensitivity,
     textSpeed: ['instant', 'steady', 'slow'].includes(item.textSpeed) ? item.textSpeed : defaultSettings.textSpeed,
     motion: typeof item.motion === 'boolean' ? item.motion : defaultSettings.motion,

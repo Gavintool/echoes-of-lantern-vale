@@ -1,33 +1,41 @@
-# Development guide
+# 开发指南
 
-## Run and verify
+## 运行与验证
 
-Install Node.js 22.12 or newer, run `npm ci`, then start `npm run dev`. Vite serves the game on port 5173 by default. Use `npm run build` to create a portable static build in `dist/`. Serve the folder over HTTP or HTTPS so browser modules can load.
+安装 Node.js 22.12 或更高版本，执行 `npm ci`，再执行 `npm run dev`。默认地址为 `http://127.0.0.1:5173/`。执行 `npm run build` 可在 `dist/` 生成静态构建。用 HTTP 或 HTTPS 服务该目录。
 
-- `npm test` verifies save isolation, malformed checkpoints, puzzle retries, and all nine route and ending combinations. GitHub Actions runs it and the production build on pushes and pull requests.
-- `npm run test:browser` uses installed Google Chrome to walk the real scene, create and reload a save, consult the journal, retry the puzzle, and complete a route. Start the game server first. Set `LANTERN_TEST_URL` to verify another local build or an accessible deployment.
-- If the 3D scene runs slowly, choose **Performance** in Settings. It reduces rendering resolution, dynamic lighting, and shadows. Audio starts after an interaction.
+- `npm test` 检查旧版存档读写、音量设置、语音资源覆盖率、可选调查、风琴重试，以及全部九种路线与结局的组合。
+- `npm run test:browser` 使用本机安装的 Chrome 实际游玩。测试覆盖中文菜单、语音播放与重听、角色立绘、存档重载、两次调音和结束旅程。先启动开发服务器。可通过 `LANTERN_TEST_URL` 测试其他地址。
+- 「流畅模式」减少渲染分辨率、动态灯光和阴影。浏览器在玩家首次操作后才允许游戏播放声音。
 
-## Runtime
+## 模块职责
 
-| Component | Responsibilities |
+| 模块 | 职责 |
 | --- | --- |
-| `src/main.js` | Title, saves, overlays, routing, focus, dialogue playback, HUD, and checkpoint scheduling |
-| `src/story.js` | Cast, scene text, reply effects, progression rules, world coordinates, discoveries, and outcomes |
-| `src/world.js` | Camera, keyboard, first-person movement, collision, and interaction distance |
-| `src/scenery.js` | Instanced geometry, lights, characters, particles, water, and scene markers |
-| `src/audio.js` | Original synthesized score, ambience, footsteps, and story cues |
-| `src/save.js` | Validation, save slots, settings, and formatting |
-| `src/assets/` | Local art assets processed by Vite |
+| `src/main.js` | 标题、游戏设置、键盘焦点、对白、暂停、存档和 HUD |
+| `src/story.js` | 中文台词、章节、角色、调查对象、分支、发现和结局 |
+| `src/world.js` | 摄像机、第一人称操作、碰撞和互动距离 |
+| `src/scenery.js` | 三维场景、灯光、奶龙立绘、道具、招牌和视觉标记 |
+| `src/audio.js` | 音频加载、分轨混音、循环渐变、对白播放、音量压低和听感方向 |
+| `src/voice-key.js` | 根据说话者和文字计算台词资产文件名 |
+| `src/save.js` | 存档和设置读写及验证 |
 
-To add a story beat, register its location in `targets`, create its scene and discovery, and test chapter completion, replay, and save behavior. The playable lane runs along negative Z. A chapter opens its own movement area, and milestones determine which targets are available. Scenes apply choice effects to a draft and commit the result once the final line is acknowledged. A wrong tuning answer leaves the organ interactable. Chapter changes move the camera to the next chapter’s spawn.
+场景坐标沿负 Z 方向展开。每一章开放一个活动范围。新增互动时，在 `targets` 中设置地点，并补充场景及手记条目。可选互动用 `optional: true` 标注。完成它们后，记录写入存档，章节条件只计算主线。选择对白时，游戏把变化暂存在场景副本中，最后一句结束后才提交进度。答错风琴后可以继续尝试。
 
-## Persistence
+## 维护音频和字体
 
-Version 1 uses `localStorage` keys under `lantern-vale:v1:`. The three slot records contain a name, act, completed scenes, position, camera angles, bond flags, tuning state, route, ending, play time, and save timestamp. Settings have a separate key. The game saves at creation, completed scenes, every 15 seconds of exploration, and when leaving or hiding the page. A manual save also preserves the current camera position. Leaving mid-dialogue resumes before that conversation. Browser private mode or blocked storage can limit persistence.
+`public/audio/voice/` 存放预先录制为 MP3 的普通话合成对白。运行 `node scripts/list-voice-lines.mjs` 可导出所有分支的台词和资产键。编辑对白后，使用 Sherpa-ONNX 和 FFmpeg 重新生成缺少的音频。删除对应的旧台词文件。生成命令示例和模型地址见[素材与声音来源](ASSETS.md)。
 
-## Publishing
+网页只下载当前场景播放和预读所需的语音。音乐、河流、风和晨鸟在独立总线上播放。说话时降低音乐和环境的音量。快速切换对白会使旧加载失效。配音音量可设为零，字幕始终显示。
 
-The public GitHub repository is the canonical source. Keep `.openai/hosting.json` tied to the existing Sites project and publish `dist/` built from the same verified commit. The Site is public. Anyone with the game link can play without signing in. The build requires no server runtime, account integration, or external write API.
+原创配乐及部分环境音与效果由 `scripts/render-soundscape.py` 渲染。Brotli 与 FontTools 用于重新打包中文字体。新增 UI、剧情或招牌时，用 `scripts/subset-fonts.py` 重做本地字体子集，检查字体是否覆盖新字。
 
-GitHub protects `main` with required code-owner review from `@Gavintool`, stale approval dismissal, and blocked forced updates and deletion. The owner retains administrative bypass for authorized changes. GitHub detects `.github/CODEOWNERS` on the base branch.
+## 存档
+
+版本 1 的存档仍使用 `lantern-vale:v1:` 开头的 `localStorage` 键。旧角色和地点 ID 按原值读取。原来留空时生成的默认名字会显示为「信使奶龙」，自定义名字保留。独立的配音、音乐和效果音量字段缺失时使用新默认值。三个存档包含进度、位置、视角、路线、结局和保存时间。正在阅读的对白会在重新载入时从头开始。
+
+## 发布
+
+公开 GitHub 仓库的 `main` 是项目的正式来源。重用 `.openai/hosting.json` 对应的 Sites 项目，从同一份经验证的提交生成 `dist/` 后发布。游戏站点可公开访问，无需登录。
+
+GitHub 对 `main` 要求代码所有者 `@Gavintool` 审查。新提交会使旧批准失效，禁止强制推送和删除分支。仓库所有者可以授权 Codex 使用所有者权限直接发布。

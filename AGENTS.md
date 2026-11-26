@@ -15,9 +15,11 @@ Every update must update this file and the documentation in the same commit or p
 - `src/story.js` owns chapter boundaries, interactions, branching dialogue, and endings.
 - `src/world.js` owns the first-person controller and range checks. `src/scenery.js` builds the 3D scenes.
 - `src/main.js` owns UI modes, dialogue playback, and checkpoints. `src/save.js` owns the save format and storage.
+- Keep all player-facing copy in Simplified Chinese. Update voice assets when changing a spoken line. Run the voice coverage test and keep render provenance in the asset guide.
 - Keep existing slot data readable. If a save revision changes, ship a migration, update [the development guide](docs/DEVELOPMENT.md), and test the old and new formats.
 
 ## Maintenance record
 
 - **1.0.0** added five chapters, three relationship routes, three endings, the tuning puzzle, three named save slots, desktop and touch controls, and static Sites hosting.
 - **2026-11-26** opened the live Sites deployment to the public. Players can start a journey without signing in.
+- **1.1.0** localized the game and story into Simplified Chinese, added 79 Mandarin dialogue clips and a new stereo soundtrack, added four optional investigations, and dressed the supporting 奶龙 cast using the supplied reference photo.

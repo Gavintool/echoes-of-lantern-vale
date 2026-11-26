@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { art } from './media.js';
-import { targets } from './story.js';
+import { cast, targets } from './story.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const palette = {
@@ -324,8 +324,80 @@ export function buildScenery(scene) {
   water.position.set(0, -0.87, -57);
   scene.add(water);
 
+  const hangingSigns = [];
+  function sign(title, x, y, z, width, height, swings) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = swings ? 172 : 155;
+    const ctx = canvas.getContext('2d');
+    const texture = new T.CanvasTexture(canvas);
+    texture.colorSpace = T.SRGBColorSpace;
+    const draw = () => {
+      const base = ctx.createLinearGradient(0, 0, 320, canvas.height);
+      base.addColorStop(0, '#281e16');
+      base.addColorStop(1, '#483125');
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, 320, canvas.height);
+      ctx.strokeStyle = '#b28553';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(10, 10, 300, canvas.height - 20);
+      ctx.strokeStyle = '#72543a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(17, 17, 286, canvas.height - 34);
+      ctx.font = `600 ${title.length > 3 ? 52 : 61}px "Lantern Serif", "Songti SC", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffe0ac';
+      ctx.fillText(title, 160, canvas.height / 2 + 5);
+      texture.needsUpdate = true;
+    };
+    draw();
+    document.fonts?.load('600 52px "Lantern Serif"', title).then(draw).catch(() => {});
+    const face = new T.Mesh(new T.PlaneGeometry(width, height), new T.MeshBasicMaterial({ map: texture, side: T.DoubleSide }));
+    face.position.set(x, y, z);
+    scene.add(face);
+    if (swings) hangingSigns.push(face);
+  }
+
+  for (const [z, label] of [[5.98, '归渡桥'], [-9.98, '灯市'], [-34.98, '银杏林'], [-59.98, '听声楼'], [-84.98, '晓灯亭']]) {
+    const y = z > 0 ? 4.34 : 3.54;
+    sign(label, 0, y, z + 0.18, 1.36, 0.53, false);
+  }
+
+  for (const [x, z, label] of [[-3.4, -16.9, '修音铺'], [3.45, -25.1, '纸灯铺'], [3.25, -42.1, '试音处'], [-3.4, -71.2, '留声档案']]) {
+    const direction = Math.sign(x);
+    shape('box', 'darkWood', x, 1.68, z, .16, 3.37, .15);
+    shape('box', 'timber', x - direction * .32, 3.29, z, .8, .11, .15);
+    for (const pin of [-.36, .36]) shape('pillar', 'gold', x - direction * .40 + pin, 3.08, z + .025, .025, .38, .025);
+    sign(label, x - direction * .4, 2.83, z + .045, 1.07, .51, true);
+    for (let i = 0; i < 3; i++) {
+      const itemZ = z - .9 - i * .49;
+      shape('box', 'timber', x + direction * .33, .18, itemZ, .56, .37, .46, 0, i * .07);
+      shape('box', 'gold', x + direction * .33, .37, itemZ, .54, .038, .43, 0, i * .07);
+    }
+  }
+
+  for (const [x, z] of [[-4, -41], [3.95, -47], [-4.04, -53], [4.05, -87], [-4, -96]]) {
+    for (let stone = 0; stone < 6; stone++) {
+      const angle = stone / 6 * Math.PI * 2;
+      shape('ico', 'stone', x + Math.cos(angle) * .31, .11, z + Math.sin(angle) * .33, .16, .19, .15, .2, angle);
+      shape('taper', 'cedar', x + Math.cos(angle) * .21, .32 + rng() * .16, z + Math.sin(angle) * .23, .14, .51, .10, .22, angle, .18);
+    }
+  }
+
   for (const target of targets) {
     const { x, z } = target;
+    if (target.prop === 'plaque') {
+      shape('box', 'stone', x, 0.09, z, 0.81, 0.21, 0.71);
+      shape('box', 'timber', x, 0.58, z, 0.14, 1.08, 0.17);
+      shape('box', 'darkWood', x, 1.04, z, 0.64, 0.39, 0.13);
+      sign(target.title, x, 1.04, z + 0.073, 0.58, 0.33, false);
+    }
+    if (target.prop === 'paper') {
+      shape('box', 'timber', x, 0.75, z, 0.09, 1.48, 0.1);
+      shape('box', 'timber', x - 0.23, 1.45, z, 0.5, 0.075, 0.10);
+      lantern(x - 0.36, 1.09, z, 0.85);
+    }
     if (target.prop === 'cylinder') {
       shape('pillar', 'stone', x, 0.48, z, 0.71, 0.96, 0.67);
       shape('box', 'gold', x, 0.99, z, 0.88, 0.14, 0.64);
@@ -356,95 +428,60 @@ export function buildScenery(scene) {
   }
 
   const textureLoader = new T.TextureLoader();
-  const dragonTexture = textureLoader.load(art('milk-dragon.webp'));
-  dragonTexture.colorSpace = T.SRGBColorSpace;
-
-  function villager(name) {
-    const isYun = name === 'yun';
-    const person = new T.Group();
-    const colors = {
-      coat: isYun ? 0x356359 : 0x6d5145,
-      trim: isYun ? 0xb18556 : 0xbe623a,
-      skin: isYun ? 0xdba585 : 0xbd866a,
-      hair: isYun ? 0x22283b : 0x402a28,
-      eyes: 0x302321,
-      pants: 0x2c3435,
-      shirt: 0xddbba0,
-    };
-    const material = Object.fromEntries(Object.entries(colors).map(([key, color]) => [key, new T.MeshStandardMaterial({ color, roughness: 0.86 })]));
-    const part = (shape, tone, x, y, z, sx, sy, sz, tilt = 0) => {
-      const mesh = new T.Mesh(geometries[shape], material[tone] ?? materials[tone]);
-      mesh.position.set(x, y, z);
-      mesh.scale.set(sx, sy, sz);
-      mesh.rotation.z = tilt;
-      mesh.castShadow = true;
-      person.add(mesh);
-    };
-    part('taper', 'coat', 0, 1.02, 0, 0.74, 0.76, 0.39);
-    part('sphere', 'coat', 0, 1.22, 0, 0.29, 0.29, 0.20);
-    part('sphere', 'skin', 0, 1.58, 0.015, 0.20, 0.244, 0.174);
-    part('sphere', 'hair', 0, 1.69, -0.028, 0.217, 0.181, 0.183);
-    part('sphere', 'shirt', 0, 1.34, 0.126, 0.13, 0.095, 0.052);
-    part('box', 'trim', 0, 1.03, 0.163, 0.074, 0.369, 0.023, 0.12);
-    if (isYun) {
-      part('sphere', 'hair', 0.14, 1.69, -0.157, 0.123, 0.111, 0.11);
-      part('sphere', 'gold', 0, 1.19, 0.185, 0.025, 0.047, 0.026);
-    } else {
-      part('sphere', 'trim', 0, 1.363, 0.063, 0.169, 0.089, 0.129, 0.16);
-      part('sphere', 'amber', -0.34, 0.81, 0.17, 0.108, 0.141, 0.103);
-      part('pillar', 'gold', -0.34, 0.944, 0.17, 0.205, 0.05, 0.205);
-    }
-    for (const side of [-1, 1]) {
-      part('sphere', 'coat', side * 0.273, 1.076, 0.011, 0.089, 0.235, 0.103, side * 0.29);
-      part('sphere', 'skin', side * 0.327, 0.901, 0.053, 0.07, 0.083, 0.064);
-      part('pillar', 'pants', side * 0.104, 0.43, -0.005, 0.158, 0.55, 0.171);
-      part('sphere', 'pants', side * 0.104, 0.123, 0.047, 0.101, 0.13, 0.15);
-      part('sphere', 'hair', side * 0.172, isYun ? 1.61 : 1.43, -0.018, 0.04, isYun ? 0.142 : 0.238, 0.081, side * 0.16);
-      part('sphere', 'eyes', side * 0.072, 1.581, 0.17, 0.018, 0.017, 0.009);
-    }
-    return person;
-  }
+  const portraits = new Map();
 
   function actor(name, x, z) {
     const group = new T.Group();
     group.position.set(x, 0, z);
-    if (name === 'bao') {
-      const sprite = new T.Sprite(new T.SpriteMaterial({ map: dragonTexture, transparent: true, alphaTest: 0.12, depthWrite: false }));
-      const height = 2.23;
-      sprite.scale.set(height * 0.883, height, 1);
-      sprite.position.y = height * 0.5;
-      group.add(sprite);
-      const modelUrl = art('milk-dragon.glb');
-      if (modelUrl) {
-        new GLTFLoader().load(modelUrl, asset => {
-          const model = asset.scene;
-          const box = new T.Box3().setFromObject(model);
-          const size = box.getSize(new T.Vector3());
-          const center = box.getCenter(new T.Vector3());
-          if (size.y <= 0) return;
-          const scale = height / size.y;
-          model.scale.setScalar(scale);
-          model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
-          model.traverse(object => { if (object.isMesh) object.castShadow = true; });
-          group.remove(sprite);
-          group.add(model);
-        }, undefined, () => {});
-      }
-    } else {
-      group.add(villager(name));
-      group.rotation.y = x > 0 ? -0.26 : 0.28;
+    const height = { bao: 2.23, yun: 2.0, ren: 1.96 }[name];
+    const sprite = new T.Sprite(new T.SpriteMaterial({ transparent: true, alphaTest: 0.11, depthWrite: false, toneMapped: false }));
+    sprite.position.y = height * 0.5;
+    group.add(sprite);
+    const portrait = cast[name].portrait;
+    if (!portraits.has(portrait)) {
+      portraits.set(portrait, textureLoader.loadAsync(art(portrait + '.webp')).then(map => {
+        map.colorSpace = T.SRGBColorSpace;
+        return map;
+      }));
     }
-    const shadow = new T.Mesh(new T.CircleGeometry(0.62, 24), new T.MeshBasicMaterial({ color: 0x122a28, opacity: 0.3, transparent: true, depthWrite: false }));
+    portraits.get(portrait).then(map => {
+      sprite.material.map = map;
+      sprite.material.needsUpdate = true;
+      sprite.scale.set(height * map.image.width / map.image.height, height, 1);
+    }).catch(() => {});
+    sprite.scale.set(0, 0, 1);
+
+    const modelUrl = name === 'bao' && art('milk-dragon.glb');
+    if (modelUrl) {
+      new GLTFLoader().load(modelUrl, asset => {
+        const model = asset.scene;
+        const box = new T.Box3().setFromObject(model);
+        const size = box.getSize(new T.Vector3());
+        const center = box.getCenter(new T.Vector3());
+        if (size.y <= 0) return;
+        const scale = height / size.y;
+        model.scale.setScalar(scale);
+        model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+        model.traverse(object => { if (object.isMesh) object.castShadow = true; });
+        group.remove(sprite);
+        group.add(model);
+      }, undefined, () => {});
+    }
+
+    const shadow = new T.Mesh(new T.PlaneGeometry(2.05, 1.22), new T.MeshBasicMaterial({
+      color: 0x0d1e18, map: glow, opacity: 0.58, transparent: true, depthWrite: false, polygonOffset: true,
+      polygonOffsetFactor: -1,
+    }));
     shadow.rotation.x = -Math.PI / 2;
-    shadow.position.set(x, 0.004, z);
+    shadow.position.set(x, 0.011, z);
     scene.add(shadow, group);
     return group;
   }
   const markers = targets.map(target => {
     const lead = target.actor ? actor(target.actor, target.x, target.z) : null;
     if (target.companion) actor(target.companion, target.x + 1.25, target.z - 0.4);
-    const marker = new T.Mesh(new T.OctahedronGeometry(0.15), new T.MeshBasicMaterial({ color: 0xffd58c }));
-    marker.position.set(target.x, lead ? 2.54 : 2.22, target.z);
+    const marker = new T.Mesh(new T.OctahedronGeometry(target.optional ? 0.10 : 0.15), new T.MeshBasicMaterial({ color: target.optional ? 0x9be4c4 : 0xffd58c }));
+    marker.position.set(target.x, lead ? 2.53 : target.optional ? 1.6 : 2.22, target.z);
     scene.add(marker);
     return { target, marker, lead, baseY: marker.position.y };
   });
@@ -501,6 +538,10 @@ export function buildScenery(scene) {
       for (const [i, haloSprite] of lanternHalos.entries()) {
         haloSprite.visible = Math.abs(haloSprite.position.z - playerZ) < 44;
         haloSprite.material.opacity = 0.35 + Math.sin(animate * 1.9 + i) * 0.07;
+      }
+      for (const [index, sign] of hangingSigns.entries()) {
+        sign.rotation.y = Math.sin(animate * 0.52 + index) * 0.041;
+        sign.rotation.z = Math.sin(animate * 0.76 + index) * 0.015;
       }
       for (const { target, marker, lead, baseY } of markers) {
         marker.visible = available.has(target.id);

@@ -42,59 +42,65 @@ async function playScene(reply = 1) {
 
 try {
   await page.goto(url);
-  await page.getByRole('button', { name: /Settings/ }).click();
-  await page.getByLabel('Dialogue speed').selectOption('instant');
-  await page.getByLabel('3D quality').selectOption('low');
-  await page.getByLabel('Ambient motion').uncheck();
-  await page.getByRole('button', { name: 'Done' }).click();
+  assert.equal(await page.locator('html').getAttribute('lang'), 'zh-Hans');
+  await page.getByRole('heading', { name: '灯谷回声' }).waitFor();
+  await page.getByRole('button', { name: /设置/ }).click();
+  await page.getByLabel('字幕速度').selectOption('instant');
+  await page.getByLabel('三维画质').selectOption('low');
+  await page.getByLabel('环境动画').uncheck();
+  await page.getByRole('button', { name: '完成' }).click();
 
-  await page.getByRole('button', { name: /Begin Journey/ }).click();
-  await page.getByRole('button', { name: /01 Empty slot/ }).click();
-  await page.getByLabel('Journey name').fill('Harbor');
-  await page.getByRole('button', { name: 'Begin journey', exact: true }).click();
+  await page.getByRole('button', { name: /开始旅程/ }).click();
+  await page.getByRole('button', { name: /01 空存档/ }).click();
+  await page.getByLabel('旅程名称').fill('Harbor');
+  await page.getByRole('button', { name: '开始旅程', exact: true }).click();
 
-  await walk('Talk to 奶龙');
-  await page.getByRole('button', { name: 'History' }).click();
+  await walk('和奶龙说话');
+  await page.locator('.replay-btn.is-speaking').waitFor({ timeout: 8000 });
+  await page.getByRole('button', { name: '重听' }).click();
+  await page.locator('.replay-btn.is-speaking').waitFor({ timeout: 8000 });
+  await page.getByRole('button', { name: '回顾' }).click();
   await page.locator('#history').waitFor({ state: 'visible' });
   await page.keyboard.press('Escape');
   await playScene();
 
-  await walk('Talk to Yun', 'a');
+  await walk('和青音奶龙说话', 'a');
+  await page.getByRole('img', { name: '青音奶龙' }).waitFor();
   await playScene();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Save now/ }).click();
+  await page.getByRole('button', { name: /保存进度/ }).click();
   await page.reload();
-  await page.getByRole('button', { name: /Continue.*Harbor/ }).click();
+  await page.getByRole('button', { name: /继续游戏.*Harbor/ }).click();
   await page.keyboard.press('j');
-  await page.getByText('The governor', { exact: true }).waitFor();
+  await page.getByText('分音器', { exact: true }).waitFor();
   await page.keyboard.press('Escape');
 
-  await walk('Talk to Ren', 'd', 1300);
+  await walk('和灯穗奶龙说话', 'd', 1300);
   await playScene();
-  await walk('Listen to Wax cylinder', 'a');
+  await walk('聆听蜡筒录音', 'a');
   await playScene();
 
   await page.keyboard.press('j');
-  await page.getByText('Low river hum → two breaths → high bell.').waitFor();
-  await page.getByRole('button', { name: 'Close' }).click();
-  await walk('Tune Lantern organ', 'd', 1300);
+  await page.getByText('低河鸣 → 两次呼吸 → 高钟。').waitFor();
+  await page.getByRole('button', { name: '关闭' }).click();
+  await walk('调音 · 灯风琴', 'd', 1300);
   await playScene(2);
   await page.keyboard.press('e');
   await page.locator('#dialogue').waitFor({ state: 'visible' });
   await playScene(1);
 
-  await walk('Approach Listening platform', 'a');
+  await walk('前往听声台', 'a');
   await playScene(2);
-  await walk('Operate Vale transmitter', 'd');
+  await walk('操作发声塔', 'd');
   await playScene(1);
-  await walk('Talk to 奶龙');
+  await walk('和奶龙说话');
   await playScene();
-  await page.getByRole('heading', { name: 'The living chorus' }).waitFor();
-  await page.getByText('5 chapters completed').waitFor();
+  await page.getByRole('heading', { name: '灯谷合唱' }).waitFor();
+  await page.getByText('已完成五章').waitFor();
 
-  await page.getByRole('button', { name: 'Main menu' }).click();
-  await page.getByRole('button', { name: /Continue.*Ending complete/ }).click();
-  await page.getByRole('heading', { name: 'The living chorus' }).waitFor();
+  await page.getByRole('button', { name: '主菜单' }).click();
+  await page.getByRole('button', { name: /继续游戏.*已通关/ }).click();
+  await page.getByRole('heading', { name: '灯谷合唱' }).waitFor();
   assert.deepEqual(failures, []);
   console.log('Browser journey passed, including save and reload, puzzle retry, and a completed ending.');
 } finally {

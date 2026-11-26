@@ -1,39 +1,39 @@
-# Echoes of Lantern Vale · 灯谷回声
+# 灯谷回声
 
-*The valley lost its voice. All that’s left is one very loud laugh.*
+灯谷突然失了声，只剩奶龙的一声笑。你是一只回乡送信的奶龙。末班渡船把你放在桥头，怀里却揣着母亲六年前留下的包裹。沿河找出声音消失的原因，再决定该把哪些回声留给灯谷。
 
-Echoes of Lantern Vale is a first-person 3D story game inspired by the 奶龙 meme. You play a courier returning home with a parcel from your mother and a deadline that nobody remembers hearing. Walk the canal, follow the laugh, and help the people of the Vale decide which voices belong in their future.
+[在线游玩](https://echoes-of-lantern-vale.tool-not-me.chatgpt.site)，无需登录。
 
-- Five chapters with galgame-style portraits, branching dialogue, two optional romantic routes, a friendship route, and three endings.
-- A walkable lantern village with animated water, an original synthesized score, a story puzzle, and a journal.
-- Three named save slots, autosave, manual saving, a dialogue log, touch controls, and adjustable 3D quality, text speed, sound, and ambient motion.
+- 五章第一人称三维探索，全中文界面、字幕和普通话配音。
+- 四套基于参考照片的奶龙服装。青音奶龙、灯穗奶龙、霜铃奶龙与信使奶龙各有自己的身份和声音。
+- 原创立体声配乐、随朝向变化的河声、风铃、石板脚步，以及实录笑声。可以分别调整配音、音乐与环境音效。
+- 三条同伴路线、三种结局、灯风琴谜题与四处可选发现。
+- 三个命名存档位、自动保存、手动保存、对白回顾和重听。旧版存档可继续使用。
 
-## Play
+## 本地启动
 
-[Open the game on Sites](https://echoes-of-lantern-vale.tool-not-me.chatgpt.site) without signing in, or run the public source locally. A browser with WebGL 2 is required. Desktop Chrome is the tested browser.
+使用 Node.js 22.12 或更高版本和支持 WebGL 2 的浏览器。完整流程已在桌面 Chrome 中验证。
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open [the local game](http://127.0.0.1:5173/). Use Node.js 22.12 or later. Select **Begin Journey**, choose a slot, and confirm its name.
+打开[本地游戏](http://127.0.0.1:5173/)，选择「开始旅程」和存档位。游戏的存档保存在当前浏览器和网址下。在线版与本地版各自保存。
 
-| Action | Controls |
+| 操作 | 控制 |
 | --- | --- |
-| Move | **WASD** or the touch stick. **Shift** moves faster. |
-| Look | Drag the view, or use **← / →** and **Page Up / Page Down**. **M** captures the mouse where supported. |
-| Interact | Approach the diamond marker, then press **E** or tap the prompt. |
-| Read and choose | **Space** or **Enter** advances dialogue. **1–3** selects a reply. |
-| Journal and pause | **J** opens the journal. **Esc** pauses and closes panels. |
+| 移动 | **WASD** 或触屏摇杆。按住 **Shift** 加速。 |
+| 转动视角 | 拖动画面，或使用 **← / →** 与 **Page Up / Page Down**。支持的浏览器可按 **M** 锁定鼠标。 |
+| 互动 | 靠近菱形标记后按 **E**，或点按屏幕上的互动按钮。 |
+| 对白 | **空格** 或 **回车** 推进。**1–3** 选择回答。点「重听」播放当前台词。 |
+| 手记和暂停 | **J** 打开手记。**Esc** 暂停游戏或关闭窗口。 |
 
-Saves stay in your browser on the origin where you started. A local save and a hosted save are separate. Use **Load Journey** to switch slots. **New Journey** asks before replacing a slot.
+## 项目文档
 
-## Develop
+- [开发指南](docs/DEVELOPMENT.md)
+- [剧情指南（含剧透）](docs/STORY.md)
+- [素材与声音来源](docs/ASSETS.md)
+- [维护规范](AGENTS.md)
 
-- [Development guide](docs/DEVELOPMENT.md) covers the runtime, save format, checks, and deployment.
-- [Story guide](docs/STORY.md) contains spoilers, character motivations, and route details.
-- [Asset credits](docs/ASSETS.md) lists sources and licenses.
-- [AGENTS.md](AGENTS.md) documents the upkeep and pull request workflow.
-
-This is an unofficial fan game. The original 奶龙 IP belongs to Seventh Impression.
+本作是非官方奶龙同人游戏。奶龙原作由第七印象创作。

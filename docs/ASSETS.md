@@ -1,23 +1,35 @@
-# Asset credits
+# 素材与声音来源
 
-| Asset | Provenance |
+| 素材 | 来源 |
 | --- | --- |
-| `src/assets/milk-dragon.webp` | Existing transparent render of 奶蛙 by **zeshentian1**. The creator’s [Meshy listing](https://www.meshy.ai/posts/%E5%A5%B6%E8%9B%99-01a19f9e-bf1b-77ff-b000-5f8fbf9835a7) marks the work CC0. The game uses the published preview, trimmed and converted to WebP, for the menu, dialogue, and camera-facing scene actor. |
-| `src/assets/vale.webp` | ImageGen environment plate. Original composition. |
-| `src/assets/yun.webp`, `src/assets/ren.webp` | ImageGen portrait atlas, cropped into two WebP portraits. Original supporting characters. |
-| 3D environment and villagers | Procedural meshes, generated textures, and shaders in `src/scenery.js`. |
-| Music, ambience, and sound effects | Original sound design synthesized at runtime in `src/audio.js`. |
-| Cinzel and Manrope | [Fontsource packages](https://fontsource.org/), SIL Open Font License. |
-| Interface icons | [Lucide](https://lucide.dev/license), ISC license with upstream notices in the package. |
-| Rendering engine | [Three.js](https://github.com/mrdoob/three.js/blob/dev/LICENSE), MIT license. |
+| `src/assets/milk-dragon.webp` | 主角沿用 **zeshentian1** 发布的[透明素材](https://www.meshy.ai/posts/%E5%A5%B6%E8%9B%99-01a19f9e-bf1b-77ff-b000-5f8fbf9835a7)。发布者将该素材标为 CC0。项目将其裁剪并转换为 WebP。 |
+| `src/assets/qingyin.webp`、`dengsui.webp`、`shuangling.webp`、`courier.webp` | 用内置 ImageGen 直接编辑玩家提供的奶龙参考照片。保留黄皮肤、小绿眼、窄嘴、浅色圆肚、原来的手脚和姿势，为每位奶龙更换服装。 |
+| `src/assets/vale.webp` | 内置 ImageGen 生成的灯谷场景。构图为山间水乡、石桥、枫树和暖色灯笼。 |
+| 三维村落与道具 | 几何体、纹理、招牌和着色器均由 `src/scenery.js` 创建。奶龙们在场景内用透明立绘呈现。主角支持通过 `src/assets/milk-dragon.glb` 可选替换为有权发布的模型。 |
+| `public/audio/voice/*.mp3` | 六种预置普通话音色通过 [Kokoro v1.1 中文模型](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh)（Apache-2.0）本地合成。旁白、对白和每条支线都有媒体文件。完整模型和训练数据未打包进游戏。 |
+| `public/audio/music/`、`public/audio/ambience/` | 原创立体声合成素材。配乐分标题、夜间和黎明三个版本，使用拨弦、吹管、尾响和钟声。 |
+| `public/audio/effects/` | 大部分效果为项目原创合成。三段剧情笑声取自 Eneasz 的 [Male Laughter.wav](https://freesound.org/people/Eneasz/sounds/119459/)，CC0，做了剪辑、调音高和空间处理。 |
+| `src/fonts/` | 基于 [Noto Sans SC](https://github.com/google/fonts/tree/main/ofl/notosanssc) 和 [Noto Serif CJK SC](https://github.com/notofonts/noto-cjk/tree/main/Serif) 制作的自托管子集。原字体采用 SIL Open Font License。许可文本和版权声明在该目录中。 |
+| 图标与渲染 | [Lucide](https://lucide.dev/license)（ISC）和 [Three.js](https://github.com/mrdoob/three.js/blob/dev/LICENSE)（MIT）。 |
 
-The original 奶龙 animation IP belongs to [Seventh Impression](https://www.nailoong.com/ipStar/NaiLong/). No official association is claimed. The Meshy creator’s CC0 designation is for their asset.
+奶龙原作由[第七印象](https://www.nailoong.com/ipStar/NaiLong/)创作。第三方素材的许可适用于该素材。本作是玩家同人创作。
 
-The current release uses a sprite for 奶龙 in the 3D scenes. The renderer supports an optional source-authorized GLB named `src/assets/milk-dragon.glb`, with +Y up and +Z forward. The shipped sprite also serves as the fallback if that file is absent or fails to load.
+## 立绘指令
 
-## Artwork prompts
+给内置 ImageGen 的共同指令为保持参考人物的原模型观感、黄色皮肤、高而平滑的头形、窄嘴、小绿眼、奶白椭圆肚子、暗色手指和扶肚子的姿势。补全照片裁掉的脚，输出单个全身透明素材。服装分别为：
 
-Built-in ImageGen was used for the two original art commissions.
+- **青音奶龙**：敞开的青色工装、铜扣、小音叉、额头的圆护目镜。
+- **灯穗奶龙**：朱红织物围巾、皮腰带、挂在身侧的琥珀纸灯。
+- **霜铃奶龙**：淡紫织物披肩、细框眼镜、渡船铜钥匙。
+- **信使奶龙**：靛蓝雨披、帆布邮袋、向后倾斜的旧斗笠。
 
-- **Lantern Vale** — “Widescreen videogame main menu environment plate, cinematic high-end 3D animated film render, no characters, no lettering. A richly detailed ancient Chinese lantern village in the misty autumn mountains. A broad mossy stone footbridge comes from bottom right and bends toward the center. ON THE RIGHT a beautiful warmly lit multistory dark wood pavilion with rust-red hanging lanterns, dark jade ceramic roof, orange maple bough overhead, realistic reflected golden light on canal, towering blue-green karst mountains with thin waterfall and warm sky in distant center top. The left 42% is significantly darker, calm deep evergreen mist with gentle silhouettes representing clear negative space for overlay title and buttons. Right 55% has radiant amber lanterns and soft golden volumetric evening light contrasting dark forest teal shadows. Soft drifting gold leaves. Sophisticated photographic framing, playful storybook visual language, realistic material rendering. No characters, creatures, ornaments shaped like dragons, text, logo, menus, or graphics.”
-- **Yun and Ren** — “Landscape rectangular videogame character portrait atlas with exactly two equally wide halves separated cleanly at the exact center, each half an independent tall 3:4 portrait, no lettering or frames. Left half exclusively: Yun, a 24-year-old Chinese woman and mountain-town sound engineer with expressive brown eyes, midnight-blue hair in a low bun, jade-green short Song-inspired jacket layered over cream collared shirt, copper tuning fork pendant, no weapons, thoughtful subtle smile, waist-up facing toward viewer, misty teal covered bridge behind her. Right half exclusively: Ren, a 25-year-old Chinese woman, lantern keeper, freckled warm brown skin, auburn-black hair in two loose side braids, red-ochre scarf with brass lantern pin, slate brown artisan work coat, holding a small amber handheld lantern waist-up facing viewer, navy and autumn pagoda lanterns behind her. Keep heads at same height, no overlap. Luxurious hand-painted cel-shaded modern galgame visual novel portraits, subtle fine brushwork, warm highlights, visible silhouettes. Cozy and wistful cinematic mood. No writing, no watermarks, no UI.”
+## 重新制作音频
+
+使用 [Sherpa-ONNX 的 Kokoro 中文模型包](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html) 和支持 MP3 的 FFmpeg。配音脚本保留六套角色音色分配。给蜡筒中的霜铃奶龙额外使用带通滤波，以区别现场对白与录音。
+
+```sh
+python3 scripts/render-voices.py --tts /path/to/sherpa-onnx-offline-tts --model /path/to/kokoro-multi-lang-v1_1
+python3 scripts/render-soundscape.py
+```
+
+第二条命令需要 NumPy 和 SciPy。玩家运行游戏只需要浏览器。

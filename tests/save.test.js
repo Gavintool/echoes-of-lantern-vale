@@ -22,7 +22,7 @@ test('save slots preserve progress and isolate newer journeys', () => {
   assert.ok(saveSlot(2, newJourney('')));
   assert.deepEqual({ ...readSlot(1), savedAt: undefined }, { ...journey, savedAt: undefined });
   assert.equal(readSlot(1).name, 'Lin');
-  assert.equal(readSlot(2).name, 'The Courier');
+  assert.equal(readSlot(2).name, '信使奶龙');
   assert.equal(timeLabel(readSlot(1).seconds), '00:01');
   assert.equal(allSlots()[2], null);
 });
@@ -41,5 +41,21 @@ test('settings read safely and clamp out-of-range values', () => {
   store.clear();
   assert.deepEqual(readSettings(), defaultSettings);
   assert.ok(saveSettings({ volume: 12, sensitivity: -10, textSpeed: 'instant', motion: false, quality: 'low' }));
-  assert.deepEqual(readSettings(), { volume: 1, sensitivity: 0.25, textSpeed: 'instant', motion: false, quality: 'low' });
+  assert.deepEqual(readSettings(), { ...defaultSettings, volume: 1, sensitivity: 0.25, textSpeed: 'instant', motion: false, quality: 'low' });
+});
+
+test('English v1 saves keep their original checkpoint and gain Chinese defaults', () => {
+  store.clear();
+  assert.ok(saveSlot(1, { ...newJourney(''), name: 'The Courier', done: ['arrival'], act: 1 }));
+  assert.equal(readSlot(1).name, '信使奶龙');
+  assert.equal(readSlot(1).act, 1);
+  assert.deepEqual(readSlot(1).done, ['arrival']);
+  assert.ok(saveSlot(2, newJourney('Lan')));
+  assert.equal(readSlot(2).name, 'Lan');
+});
+
+test('independent audio levels survive loading and are clamped', () => {
+  store.clear();
+  assert.ok(saveSettings({ voiceVolume: 0, musicVolume: 0.22, effectsVolume: 1.7 }));
+  assert.deepEqual(readSettings(), { ...defaultSettings, voiceVolume: 0, musicVolume: 0.22, effectsVolume: 1 });
 });

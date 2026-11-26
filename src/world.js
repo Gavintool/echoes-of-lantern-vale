@@ -100,7 +100,7 @@ export class World {
       ...target,
       distance: Math.hypot(target.x - this.position.x, target.z - this.position.z),
     })).sort((a, b) => a.distance - b.distance);
-    return ordered[0] ?? null;
+    return ordered.find(target => target.distance < 2.55) ?? ordered.find(target => !target.optional) ?? null;
   }
 
   projected(target) {

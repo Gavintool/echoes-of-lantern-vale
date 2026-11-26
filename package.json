@@ -1,0 +1,27 @@
+{
+  "name": "echoes-of-lantern-vale",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A first-person 3D story game about the sound of home.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --strictPort",
+    "build": "vite build --base=./",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "lucide-static": "^0.563.0",
+    "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1",
+    "vite": "^7.3.1"
+  }
+}
